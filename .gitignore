@@ -1,0 +1,53 @@
+# ===========================
+# Spring Boot / Java
+# ===========================
+jobtrail-api/target/
+*.class
+*.jar
+*.war
+*.ear
+*.logs
+hs_err_pid*
+
+# Maven
+jobtrail-api/.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ===========================
+# IntelliJ IDEA
+# ===========================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ===========================
+# Vite + React
+# ===========================
+jobtrail-ui/node_modules/
+jobtrail-ui/dist/
+jobtrail-ui/.env
+jobtrail-ui/.env.local
+jobtrail-ui/.env.production
+
+# ===========================
+# Environment / Secrets
+# ===========================
+.env
+.env.local
+application-local.properties
+**/application-secrets.properties
+
+# ===========================
+# OS
+# ===========================
+.DS_Store
+Thumbs.db
+
+# ===========================
+# Logs
+# ===========================
+*.log
+logs/
