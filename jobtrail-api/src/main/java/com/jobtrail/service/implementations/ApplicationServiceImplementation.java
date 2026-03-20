@@ -71,4 +71,54 @@ public class ApplicationServiceImplementation implements ApplicationService {
                 .updatedAt(saved.getUpdatedAt())
                 .build();
     }
+
+    /**
+     * Method to update an existing application in the backend
+     * @param applicationId id of the existing application
+     * @param request updated details of the application
+     * @param username username of the user
+     * @return response after updating the application
+     */
+    @Override
+    public ApplicationResponse updateApplication(Long applicationId, ApplicationRequest request, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+
+        if (!application.getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("Unauthorized — this application does not belong to you");
+        }
+
+        Resume resume = null;
+        if (request.getResumeId() != null) {
+            resume = resumeRepository.findByResumeIdAndUserUserId(
+                            request.getResumeId(), user.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Resume not found"));
+        }
+
+        application.setCompany(request.getCompany());
+        application.setRole(request.getRole());
+        application.setRoleType(RoleType.valueOf(request.getRoleType()));
+        application.setApplicationStatus(ApplicationStatus.valueOf(request.getApplicationStatus()));
+        application.setLink(request.getLink());
+        application.setDescription(request.getDescription());
+        application.setResume(resume);
+
+        Application saved = applicationRepository.save(application);
+
+        return ApplicationResponse.builder()
+                .applicationId(saved.getApplicationId())
+                .company(saved.getCompany())
+                .role(saved.getRole())
+                .roleType(saved.getRoleType().name())
+                .applicationStatus(saved.getApplicationStatus().name())
+                .link(saved.getLink())
+                .description(saved.getDescription())
+                .resumeId(saved.getResume() != null ? saved.getResume().getResumeId() : null)
+                .appliedAt(saved.getAppliedAt())
+                .updatedAt(saved.getUpdatedAt())
+                .build();
+    }
 }

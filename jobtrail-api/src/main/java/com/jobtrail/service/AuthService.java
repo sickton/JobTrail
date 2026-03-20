@@ -10,8 +10,8 @@ import com.jobtrail.dto.RegisterRequest;
  */
 public interface AuthService {
     /** Abstract Method to register a user request*/
-    public AuthResponse register(RegisterRequest request);
+    AuthResponse register(RegisterRequest request);
 
     /** Abstract Method to process a login request*/
-    public AuthResponse login(LoginRequest request);
+    AuthResponse login(LoginRequest request);
 }
