@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author Srivathsa Mantrala
@@ -29,5 +26,21 @@ public class ApplicationController {
     {
         return ResponseEntity.ok(
                 applicationService.createApplication(request, userDetails.getUsername()));
+    }
+
+    /**
+     * Endpoint to update an existing application
+     * @param id application id
+     * @param request updated details
+     * @param userDetails authenticated user
+     * @return updated application
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ApplicationResponse> updateApplication(
+            @PathVariable Long id,
+            @RequestBody ApplicationRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                applicationService.updateApplication(id, request, userDetails.getUsername()));
     }
 }
