@@ -9,5 +9,8 @@ import com.jobtrail.dto.ApplicationResponse;
  */
 public interface ApplicationService {
     /** Abstract method to create an application manually*/
-    public ApplicationResponse createApplication(ApplicationRequest request, String username);
+    ApplicationResponse createApplication(ApplicationRequest request, String username);
+
+    /** Abstract method to update an existing application*/
+    ApplicationResponse updateApplication(Long applicationId, ApplicationRequest request, String username);
 }
