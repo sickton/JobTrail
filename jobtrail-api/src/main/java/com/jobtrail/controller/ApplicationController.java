@@ -5,6 +5,7 @@ import com.jobtrail.dto.ApplicationResponse;
 import com.jobtrail.entity.Application;
 import com.jobtrail.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,5 +43,19 @@ public class ApplicationController {
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(
                 applicationService.updateApplication(id, request, userDetails.getUsername()));
+    }
+
+    /**
+     * Endpoint to delete an existing application
+     * @param id application id
+     * @param userDetails authenticated user
+     * @return successful message
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteApplication(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        applicationService.deleteApplication(id, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
     }
 }
