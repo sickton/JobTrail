@@ -121,4 +121,24 @@ public class ApplicationServiceImplementation implements ApplicationService {
                 .updatedAt(saved.getUpdatedAt())
                 .build();
     }
+
+    /**
+     * Method to delte an existing application from the system
+     * @param applicationId id of the existing application
+     * @param username username of the user
+     */
+    @Override
+    public void deleteApplication(Long applicationId, String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+
+        if (!application.getUser().getUserId().equals(user.getUserId())) {
+            throw new RuntimeException("Unauthorized — this application does not belong to you");
+        }
+
+        applicationRepository.delete(application);
+    }
 }
