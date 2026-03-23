@@ -15,6 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * @author Srivathsa Mantrala
  * Implementation class to process and update the applications data passed through web request
@@ -140,5 +143,32 @@ public class ApplicationServiceImplementation implements ApplicationService {
         }
 
         applicationRepository.delete(application);
+    }
+
+    /**
+     * Method to return the applications associated with a user
+     * @param username username of the user
+     * @return list of applications
+     */
+    @Override
+    public List<ApplicationResponse> getApplications(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        return applicationRepository.findByUserUserId(user.getUserId())
+                .stream()
+                .map(app -> ApplicationResponse.builder()
+                        .applicationId(app.getApplicationId())
+                        .company(app.getCompany())
+                        .role(app.getRole())
+                        .roleType(app.getRoleType().name())
+                        .applicationStatus(app.getApplicationStatus().name())
+                        .link(app.getLink())
+                        .description(app.getDescription())
+                        .resumeId(app.getResume() != null ? app.getResume().getResumeId() : null)
+                        .appliedAt(app.getAppliedAt())
+                        .updatedAt(app.getUpdatedAt())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

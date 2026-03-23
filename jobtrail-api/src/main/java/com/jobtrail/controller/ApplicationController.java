@@ -2,10 +2,8 @@ package com.jobtrail.controller;
 
 import com.jobtrail.dto.ApplicationRequest;
 import com.jobtrail.dto.ApplicationResponse;
-import com.jobtrail.entity.Application;
 import com.jobtrail.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.jobtrail.dto.ParseRequest;
 import com.jobtrail.dto.ParseResponse;
 import com.jobtrail.service.OpenAIService;
+import java.util.List;
 
 /**
  * @author Srivathsa Mantrala
@@ -82,4 +81,17 @@ public class ApplicationController {
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(openAIService.parseJobPosting(request));
     }
+
+    /**
+     * Endpoint to retrieve all applications for the authenticated user
+     * @param userDetails authenticated user
+     * @return list of applications
+     */
+    @GetMapping
+    public ResponseEntity<List<ApplicationResponse>> getApplications(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                applicationService.getApplications(userDetails.getUsername()));
+    }
+
 }
