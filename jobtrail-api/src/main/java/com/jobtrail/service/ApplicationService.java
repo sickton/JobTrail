@@ -3,6 +3,8 @@ package com.jobtrail.service;
 import com.jobtrail.dto.ApplicationRequest;
 import com.jobtrail.dto.ApplicationResponse;
 
+import java.util.List;
+
 /**
  * @author Srivathsa Mantrala
  * Interface to provide functionality of creating applications manually
@@ -16,4 +18,7 @@ public interface ApplicationService {
 
     /** Abstract method to delete an existing application*/
     void deleteApplication(Long applicationId, String username);
+
+    /** Abstract method to return the list of applications for a user*/
+    List<ApplicationResponse> getApplications(String username);
 }
