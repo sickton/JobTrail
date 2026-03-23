@@ -11,3 +11,6 @@ export const updateApplication = (id, data) =>
 
 export const deleteApplication = (id) =>
   client.delete(`/api/applications/${id}`)
+
+export const parseApplication = (text) =>
+    client.post('/api/applications/parse', { text }).then((r) => r.data)
