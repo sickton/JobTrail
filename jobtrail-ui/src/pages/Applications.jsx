@@ -7,6 +7,7 @@ import ApplicationTable from '../components/applications/ApplicationTable'
 import ApplicationForm from '../components/applications/ApplicationForm'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { StatusBadge } from '../components/ui/Badge'
+import { getResumes } from '../api/resumes'
 
 const ALL_STATUSES = ['APPLIED', 'SCREENING', 'INTERVIEW', 'OFFERED', 'REJECTED', 'WITHDRAWN']
 
@@ -23,6 +24,11 @@ export default function Applications() {
     queryKey: ['applications'],
     queryFn: getApplications,
     retry: false,
+  })
+
+  const { data: resumes = [] } = useQuery({
+    queryKey: ['resumes'],
+    queryFn: getResumes,
   })
 
   const createMut = useMutation({
@@ -163,12 +169,13 @@ export default function Applications() {
 
       {/* Create/Edit form modal */}
       <ApplicationForm
-        open={formOpen || !!editTarget}
-        onClose={() => { setFormOpen(false); setEditTarget(null) }}
-        onSubmit={handleFormSubmit}
-        defaultValues={editTarget}
-        loading={isFormLoading}
-        mode={editTarget ? 'edit' : 'create'}
+          open={formOpen || !!editTarget}
+          onClose={() => { setFormOpen(false); setEditTarget(null) }}
+          onSubmit={handleFormSubmit}
+          defaultValues={editTarget}
+          loading={isFormLoading}
+          mode={editTarget ? 'edit' : 'create'}
+          resumes={resumes}
       />
 
       {/* Delete confirm */}

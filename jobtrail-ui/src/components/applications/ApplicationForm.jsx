@@ -13,6 +13,7 @@ const schema = z.object({
   applicationStatus: z.string().min(1, 'Status is required'),
   link: z.string().url('Must be a valid URL').or(z.literal('')).optional(),
   description: z.string().optional(),
+  resumeId: z.string().optional(),
 })
 
 const ROLE_TYPES = [
@@ -38,7 +39,7 @@ const inputClass =
 const labelClass = 'block text-xs font-medium text-zinc-400 mb-1.5'
 const errorClass = 'text-red-400 text-xs mt-1'
 
-export default function ApplicationForm({ open, onClose, onSubmit, defaultValues, loading, mode }) {
+export default function ApplicationForm({ open, onClose, onSubmit, defaultValues, loading, mode, resumes = [] }) {
   const [pasteMode, setPasteMode] = useState(false)
   const [pasteText, setPasteText] = useState('')
 
@@ -57,6 +58,7 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
       applicationStatus: 'APPLIED',
       link: '',
       description: '',
+      resumeId: '',
     },
   })
 
@@ -79,8 +81,8 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
       setPasteText('')
       reset(
           defaultValues
-              ? { ...defaultValues, link: defaultValues.link ?? '', description: defaultValues.description ?? '' }
-              : { company: '', role: '', roleType: 'FULLTIME', applicationStatus: 'APPLIED', link: '', description: '' }
+              ? { ...defaultValues, link: defaultValues.link ?? '', description: defaultValues.description ?? '', resumeId: defaultValues.resumeId ? String(defaultValues.resumeId) : '' }
+              : { company: '', role: '', roleType: 'FULLTIME', applicationStatus: 'APPLIED', link: '', description: '', resumeId: '' }
       )
     }
   }, [open, defaultValues, reset])
@@ -89,6 +91,8 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
     const payload = { ...data }
     if (!payload.link) delete payload.link
     if (!payload.description) delete payload.description
+    if (!payload.resumeId) delete payload.resumeId
+    else payload.resumeId = Number(payload.resumeId)
     onSubmit(payload)
   }
 
@@ -210,6 +214,18 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
                     rows={3}
                     className={`${inputClass} resize-none`}
                 />
+              </div>
+
+              <div>
+                <label className={labelClass}>Resume (optional)</label>
+                <select {...register('resumeId')} className={inputClass}>
+                  <option value="" className="bg-zinc-800">— None —</option>
+                  {resumes.map((r) => (
+                      <option key={r.resumeId} value={String(r.resumeId)} className="bg-zinc-800">
+                        {r.versionName}
+                      </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex gap-3 justify-end pt-2">
