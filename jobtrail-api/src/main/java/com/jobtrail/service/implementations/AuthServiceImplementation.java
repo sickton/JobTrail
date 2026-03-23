@@ -47,7 +47,7 @@ public class AuthServiceImplementation implements AuthService {
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getUsername());
-        return new AuthResponse(token);
+        return new AuthResponse(token, user.getUsername(), user.getFirstName());
     }
 
     /**
@@ -64,7 +64,9 @@ public class AuthServiceImplementation implements AuthService {
                 )
         );
 
-        String token = jwtUtil.generateToken(request.getUsername());
-        return new AuthResponse(token);
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        String token = jwtUtil.generateToken(user.getUsername());
+        return new AuthResponse(token, user.getUsername(), user.getFirstName());
     }
 }
