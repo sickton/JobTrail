@@ -1,8 +1,10 @@
 package com.jobtrail.service.implementations;
 
 import com.jobtrail.dto.ResumeResponse;
+import com.jobtrail.entity.Application;
 import com.jobtrail.entity.Resume;
 import com.jobtrail.entity.User;
+import com.jobtrail.repository.ApplicationRepository;
 import com.jobtrail.repository.ResumeRepository;
 import com.jobtrail.repository.UserRepository;
 import com.jobtrail.service.ResumeService;
@@ -25,6 +27,8 @@ public class ResumeServiceImplementation implements ResumeService {
 
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
+    private final ApplicationRepository applicationRepository;
+
 
     @Override
     public List<ResumeResponse> getResumes(String username) {
@@ -75,6 +79,15 @@ public class ResumeServiceImplementation implements ResumeService {
 
         Resume resume = resumeRepository.findByResumeIdAndUserUserId(resumeId, user.getUserId())
                 .orElseThrow(() -> new RuntimeException("Resume not found"));
+
+        // Unlink resume from any applications that reference it
+        List<Application> linked = applicationRepository.findByUserUserId(user.getUserId())
+                .stream()
+                .filter(a -> a.getResume() != null && a.getResume().getResumeId().equals(resumeId))
+                .toList();
+
+        linked.forEach(a -> a.setResume(null));
+        applicationRepository.saveAll(linked);
 
         resumeRepository.delete(resume);
     }
