@@ -12,4 +12,8 @@ import lombok.Getter;
 public class AuthResponse {
     /** Field to store the generated token*/
     private String token;
+    /** Field to store the firstname of the user*/
+    private String firstName;
+    /** Field to store the username of the user*/
+    private String username;
 }

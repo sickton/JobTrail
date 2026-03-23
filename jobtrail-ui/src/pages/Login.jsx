@@ -35,7 +35,7 @@ export default function Login() {
     mutationFn: login,
     onSuccess: (data) => {
       localStorage.setItem('jt_token', data.token)
-      setAuth(data.token, null, null)
+      setAuth(data.token, data.username, data.firstName)
       navigate('/home')
     },
   })

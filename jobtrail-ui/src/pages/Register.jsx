@@ -45,7 +45,7 @@ export default function Register() {
     mutationFn: registerUser,
     onSuccess: (data) => {
       localStorage.setItem('jt_token', data.token)
-      setAuth(data.token, null, null)
+      setAuth(data.token, data.username, data.firstName)
       navigate('/home')
     },
   })
