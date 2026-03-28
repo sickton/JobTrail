@@ -128,8 +128,8 @@ public class ResumeServiceImplementation implements ResumeService {
             Map<?, ?> result = cloudinary.uploader().upload(
                     file.getBytes(),
                     ObjectUtils.asMap(
-                            "public_id",    publicId,
-                            "resource_type", "raw"
+                            "public_id",     publicId,
+                            "resource_type", "image"    // ← change "raw" to "image"
                     )
             );
             return (String) result.get("secure_url");
@@ -142,17 +142,16 @@ public class ResumeServiceImplementation implements ResumeService {
         try {
             String publicId = extractPublicId(fileUrl);
             cloudinary.uploader().destroy(publicId,
-                    ObjectUtils.asMap("resource_type", "raw"));
+                    ObjectUtils.asMap("resource_type", "image"));  // ← change "raw" to "image"
         } catch (Exception ignored) {
             // Don't block DB deletion if cloud delete fails
         }
     }
 
     private String extractPublicId(String url) {
-        // URL format: https://res.cloudinary.com/{cloud}/raw/upload/v{version}/{public_id}
+        // URL format: https://res.cloudinary.com/{cloud}/image/upload/v{version}/{public_id}
         int uploadIdx = url.indexOf("/upload/");
         String afterUpload = url.substring(uploadIdx + 8);
-        // Strip version segment e.g. "v1234567/"
         if (afterUpload.matches("v\\d+/.*")) {
             afterUpload = afterUpload.substring(afterUpload.indexOf("/") + 1);
         }
