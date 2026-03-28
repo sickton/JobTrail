@@ -10,3 +10,6 @@ export const addResume = (formData) =>
 
 export const deleteResume = (id) =>
     client.delete(`/api/resumes/${id}`).then((r) => r.data)
+
+export const downloadResume = (id) =>
+    window.open(`${client.defaults.baseURL}/api/resumes/${id}/download`, '_blank')

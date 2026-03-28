@@ -12,4 +12,5 @@ public interface ResumeService {
     List<ResumeResponse> getResumes(String username);
     ResumeResponse addResume(String versionName, MultipartFile file, String username);
     void deleteResume(Long resumeId, String username);
+    String getResumeFileUrl(Long resumeId, String username);
 }

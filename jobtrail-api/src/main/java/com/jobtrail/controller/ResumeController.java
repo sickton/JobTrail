@@ -8,6 +8,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -42,5 +44,15 @@ public class ResumeController {
             @AuthenticationPrincipal UserDetails userDetails) {
         resumeService.deleteResume(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Void> downloadResume(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String fileUrl = resumeService.getResumeFileUrl(id, userDetails.getUsername());
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, fileUrl)
+                .build();
     }
 }
