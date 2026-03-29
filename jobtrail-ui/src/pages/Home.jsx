@@ -27,11 +27,6 @@ function formatDate(dt) {
   return new Date(dt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-function isWithin3Days(dt) {
-  if (!dt) return false
-  return Date.now() - new Date(dt).getTime() < 3 * 24 * 60 * 60 * 1000
-}
-
 const STATUS_ORDER = { OFFERED: 0, INTERVIEW: 1, SCREENING: 2, APPLIED: 3, REJECTED: 4, WITHDRAWN: 5 }
 
 export default function Home() {
@@ -52,8 +47,7 @@ export default function Home() {
   const offersCount = applications.filter((a) => a.applicationStatus === 'OFFERED').length
 
   const recent = [...applications]
-    .filter((a) => isWithin3Days(a.appliedAt))
-    .sort((a, b) => STATUS_ORDER[a.applicationStatus] - STATUS_ORDER[b.applicationStatus])
+    .sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt))
     .slice(0, 5)
 
   const QUICK_ACTIONS = [
@@ -162,7 +156,7 @@ export default function Home() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
               Recent Activity
-              <span className="ml-2 text-xs text-zinc-600 normal-case tracking-normal font-normal">last 3 days</span>
+              <span className="ml-2 text-xs text-zinc-600 normal-case tracking-normal font-normal">5 most recent</span>
             </h2>
             <button
               onClick={() => navigate('/applications')}
@@ -176,8 +170,8 @@ export default function Home() {
             {recent.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <TrendingUp size={28} className="text-zinc-700 mb-3" />
-                <p className="text-zinc-400 text-sm font-medium">No activity in the last 3 days</p>
-                <p className="text-zinc-600 text-xs mt-1">Applications you add will appear here</p>
+                <p className="text-zinc-400 text-sm font-medium">No applications yet</p>
+                <p className="text-zinc-600 text-xs mt-1">Your most recent applications will appear here</p>
               </div>
             ) : (
               <div className="divide-y divide-zinc-800/60">

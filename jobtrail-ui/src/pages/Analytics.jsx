@@ -5,31 +5,42 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts'
-import { TrendingUp, Clock, Target, Zap, AlertCircle, Award } from 'lucide-react'
+import { TrendingUp, Zap, Award, Briefcase, BarChart2, Rocket, Target, Lock } from 'lucide-react'
 import { getApplications } from '../api/applications'
 
-const PIE_COLORS = ['#6366f1', '#22d3ee', '#a78bfa', '#34d399', '#f59e0b', '#f87171']
-const THREE_WEEKS_MS = 21 * 24 * 60 * 60 * 1000
+const FUNNEL_STAGES = [
+  { key: 'APPLIED',   label: 'Applied',   hex: '#6366f1' },
+  { key: 'SCREENING', label: 'Screening', hex: '#22d3ee' },
+  { key: 'INTERVIEW', label: 'Interview', hex: '#a78bfa' },
+  { key: 'OFFERED',   label: 'Offered',   hex: '#34d399' },
+]
 
-function StatCard({ icon: Icon, label, value, sub, color, delay = 0, chart }) {
+const ROLE_COLORS = ['#6366f1', '#22d3ee', '#a78bfa', '#f59e0b', '#f87171']
+
+const ROLE_LABELS = {
+  FULLTIME:   'Full-time',
+  INTERNSHIP: 'Internship',
+  COOP:       'Co-op',
+  CONTRACT:   'Contract',
+  TEMPORARY:  'Temporary',
+}
+
+function StatCard({ icon: Icon, label, value, sub, color, delay = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-3"
+      className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between mb-3">
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color}`}>
           <Icon size={17} className="text-white" />
         </div>
         <span className="text-xs text-zinc-600 font-medium uppercase tracking-wider">{label}</span>
       </div>
-      <div>
-        <p className="text-3xl font-bold text-white">{value}</p>
-        {sub && <p className="text-xs text-zinc-500 mt-1">{sub}</p>}
-      </div>
-      {chart && <div className="mt-1">{chart}</div>}
+      <p className="text-3xl font-bold text-white">{value}</p>
+      {sub && <p className="text-xs text-zinc-500 mt-1">{sub}</p>}
     </motion.div>
   )
 }
@@ -57,29 +68,33 @@ export default function Analytics() {
     const total = applications.length
     if (total === 0) return null
 
-    // a) App to Interview rate
-    const withInterview = applications.filter((a) => a.interviewAt || a.applicationStatus === 'INTERVIEW' || a.applicationStatus === 'OFFERED').length
-    const appToInterviewRate = total ? Math.round((withInterview / total) * 100) : 0
+    // Active pipeline — apps still being considered
+    const active = applications.filter((a) =>
+      ['APPLIED', 'SCREENING', 'INTERVIEW'].includes(a.applicationStatus)
+    ).length
 
-    // b) Interview to Offer rate
-    const withOffer = applications.filter((a) => a.applicationStatus === 'OFFERED').length
-    const interviewToOfferRate = withInterview ? Math.round((withOffer / withInterview) * 100) : 0
+    // Interview rate — % that reached interview or beyond
+    const interviewed = applications.filter((a) =>
+      ['INTERVIEW', 'OFFERED'].includes(a.applicationStatus)
+    ).length
+    const interviewRate = total ? Math.round((interviewed / total) * 100) : 0
 
-    // c) Average response time (applied → first status update beyond APPLIED)
-    const responseTimes = applications
-      .filter((a) => a.appliedAt && a.updatedAt && a.applicationStatus !== 'APPLIED')
-      .map((a) => (new Date(a.updatedAt) - new Date(a.appliedAt)) / (1000 * 60 * 60 * 24))
-    const avgResponseDays = responseTimes.length
-      ? Math.round(responseTimes.reduce((s, v) => s + v, 0) / responseTimes.length)
-      : null
+    // Offers
+    const offers = applications.filter((a) => a.applicationStatus === 'OFFERED').length
 
-    // d) Average application rate — group by ISO week
+    // Pipeline funnel — current status counts (positive stages only)
+    const funnelCounts = {}
+    FUNNEL_STAGES.forEach(({ key }) => {
+      funnelCounts[key] = applications.filter((a) => a.applicationStatus === key).length
+    })
+    const funnelTotal = Object.values(funnelCounts).reduce((s, v) => s + v, 0)
+
+    // Weekly activity — group by ISO week number
     const weekCounts = {}
     applications.forEach((a) => {
       if (!a.appliedAt) return
       const d = new Date(a.appliedAt)
-      const year = d.getFullYear()
-      const startOfYear = new Date(year, 0, 1)
+      const startOfYear = new Date(d.getFullYear(), 0, 1)
       const weekNum = Math.ceil(((d - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7)
       const key = `W${weekNum}`
       weekCounts[key] = (weekCounts[key] || 0) + 1
@@ -88,23 +103,17 @@ export default function Analytics() {
       .sort()
       .slice(-8)
       .map(([week, count]) => ({ week, count }))
-    const avgPerWeek = weekData.length
-      ? (weekData.reduce((s, w) => s + w.count, 0) / weekData.length).toFixed(1)
-      : 0
 
-    // e) Success by platform — not tracked yet (no source field), use status breakdown
-    const statusData = ['APPLIED','SCREENING','INTERVIEW','OFFERED','REJECTED','WITHDRAWN']
-      .map((s) => ({ name: s.charAt(0) + s.slice(1).toLowerCase(), value: applications.filter((a) => a.applicationStatus === s).length }))
-      .filter((d) => d.value > 0)
+    // Role type breakdown
+    const roleMap = applications.reduce((acc, a) => {
+      if (a.roleType) acc[a.roleType] = (acc[a.roleType] || 0) + 1
+      return acc
+    }, {})
+    const roleData = Object.entries(roleMap)
+      .map(([type, count]) => ({ name: ROLE_LABELS[type] ?? type, value: count }))
+      .sort((a, b) => b.value - a.value)
 
-    // f) Follow-up requests — no response in 3 weeks (APPLIED status, applied >3 weeks ago)
-    const followUp = applications.filter((a) =>
-      a.applicationStatus === 'APPLIED' &&
-      a.appliedAt &&
-      Date.now() - new Date(a.appliedAt).getTime() > THREE_WEEKS_MS
-    )
-
-    return { appToInterviewRate, interviewToOfferRate, avgResponseDays, weekData, avgPerWeek, statusData, followUp }
+    return { total, active, interviewRate, offers, funnelCounts, funnelTotal, weekData, roleData }
   }, [applications])
 
   if (isLoading) {
@@ -129,60 +138,168 @@ export default function Analytics() {
           className="flex flex-col items-center justify-center py-24 text-center"
         >
           <div className="w-16 h-16 bg-zinc-800/60 border border-zinc-700 rounded-2xl flex items-center justify-center mb-4">
-            <BarChart className="text-zinc-600" size={28} />
+            <BarChart2 size={28} className="text-zinc-600" />
           </div>
           <p className="text-zinc-300 font-semibold mb-1">No data yet</p>
-          <p className="text-zinc-600 text-sm max-w-xs">
-            Start adding applications and your 6 personal analytics metrics will appear here automatically.
+          <p className="text-zinc-600 text-sm max-w-xs leading-relaxed">
+            Start adding applications and your analytics will appear here automatically.
           </p>
         </motion.div>
       </div>
     )
   }
 
-  const { appToInterviewRate, interviewToOfferRate, avgResponseDays, weekData, avgPerWeek, statusData, followUp } = metrics
+  const { total, active, interviewRate, offers, funnelCounts, funnelTotal, weekData, roleData } = metrics
+
+  const interviewUnlocked = interviewRate > 0
+  const offerUnlocked = offers > 0
 
   return (
     <div className="space-y-6">
+
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-white">Analytics</h1>
         <p className="text-zinc-500 text-sm mt-0.5">
-          Personal insights based on {applications.length} application{applications.length !== 1 ? 's' : ''}
+          Your job search at a glance — {total} application{total !== 1 ? 's' : ''} tracked
         </p>
       </motion.div>
 
-      {/* Top row — 4 metric cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Row 1 — Applications Sent + In Play */}
+      <div className="grid grid-cols-2 gap-4">
         <StatCard
-          icon={TrendingUp} label="App → Interview" color="bg-indigo-600"
-          value={`${appToInterviewRate}%`}
-          sub="of applications reached interview stage"
+          icon={Rocket} label="Applications Sent" color="bg-indigo-600"
+          value={total}
+          sub="total applications sent"
           delay={0.05}
         />
         <StatCard
-          icon={Award} label="Interview → Offer" color="bg-emerald-600"
-          value={`${interviewToOfferRate}%`}
-          sub="of interviews converted to offer"
+          icon={Zap} label="In Play" color="bg-amber-600"
+          value={active}
+          sub="actively being considered"
           delay={0.1}
-        />
-        <StatCard
-          icon={Clock} label="Avg Response Time" color="bg-amber-600"
-          value={avgResponseDays !== null ? `${avgResponseDays}d` : 'N/A'}
-          sub="days from apply to first update"
-          delay={0.15}
-        />
-        <StatCard
-          icon={Zap} label="Avg Weekly Rate" color="bg-violet-600"
-          value={avgPerWeek}
-          sub="applications per week (avg)"
-          delay={0.2}
         />
       </div>
 
-      {/* Bottom row — charts */}
+      {/* Row 2 — Role Type Breakdown */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
+      >
+        <div className="flex items-center gap-2 mb-5">
+          <Briefcase size={16} className="text-cyan-400" />
+          <h3 className="text-sm font-semibold text-zinc-200">Role Type Breakdown</h3>
+          <span className="text-xs text-zinc-600 ml-auto">{total} applications</span>
+        </div>
+
+        {roleData.length > 0 ? (
+          <div className="grid grid-cols-2 gap-8 items-center">
+            {/* Animated progress bars */}
+            <div className="space-y-3.5">
+              {roleData.map(({ name, value }, i) => (
+                <div key={name} className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-400">{name}</span>
+                    <span className="text-xs font-semibold text-zinc-300">{value}</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(value / total) * 100}%` }}
+                      transition={{ delay: 0.25 + i * 0.07, duration: 0.6, ease: 'easeOut' }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: ROLE_COLORS[i % ROLE_COLORS.length] }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Donut chart */}
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={roleData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={72}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {roleData.map((_, i) => (
+                    <Cell key={i} fill={ROLE_COLORS[i % ROLE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: '11px', color: '#71717a' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <p className="text-zinc-600 text-sm text-center py-4">No role type data yet</p>
+        )}
+      </motion.div>
+
+      {/* Row 3 — Pipeline + Weekly Activity */}
       <div className="grid grid-cols-2 gap-4">
-        {/* Weekly application rate bar chart */}
+
+        {/* Pipeline Funnel */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <Target size={16} className="text-indigo-400" />
+            <h3 className="text-sm font-semibold text-zinc-200">Application Pipeline</h3>
+          </div>
+
+          <div className="space-y-4">
+            {FUNNEL_STAGES.map(({ key, label, hex }, i) => {
+              const count = funnelCounts[key] ?? 0
+              const pct = funnelTotal > 0 ? (count / funnelTotal) * 100 : 0
+              return (
+                <div key={key} className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-400 font-medium">{label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-zinc-600">{Math.round(pct)}%</span>
+                      <span className="text-sm font-bold text-zinc-200 w-5 text-right">{count}</span>
+                    </div>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ delay: 0.3 + i * 0.08, duration: 0.7, ease: 'easeOut' }}
+                      className="h-full rounded-full"
+                      style={{ backgroundColor: hex }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="mt-5 pt-4 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-600">
+            <span>{funnelTotal} in active pipeline</span>
+            {funnelCounts['OFFERED'] > 0 && (
+              <span className="text-emerald-500 font-semibold">
+                🎉 {funnelCounts['OFFERED']} offer{funnelCounts['OFFERED'] > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Weekly Activity */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -190,12 +307,12 @@ export default function Analytics() {
           className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
         >
           <div className="flex items-center gap-2 mb-4">
-            <Target size={16} className="text-indigo-400" />
-            <h3 className="text-sm font-semibold text-zinc-200">Application Rate</h3>
+            <Zap size={16} className="text-amber-400" />
+            <h3 className="text-sm font-semibold text-zinc-200">Weekly Activity</h3>
             <span className="text-xs text-zinc-600 ml-auto">Last 8 weeks</span>
           </div>
           {weekData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={180}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={weekData} barSize={20}>
                 <XAxis dataKey="week" tick={{ fill: '#52525b', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#52525b', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
@@ -204,85 +321,99 @@ export default function Analytics() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-zinc-700 text-sm">No weekly data yet</div>
+            <div className="h-[200px] flex items-center justify-center text-zinc-700 text-sm">
+              No weekly data yet
+            </div>
           )}
-        </motion.div>
-
-        {/* Status distribution pie */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Target size={16} className="text-violet-400" />
-            <h3 className="text-sm font-semibold text-zinc-200">Status Distribution</h3>
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie
-                data={statusData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={75}
-                paddingAngle={3}
-                dataKey="value"
-              >
-                {statusData.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend
-                iconType="circle"
-                iconSize={8}
-                wrapperStyle={{ fontSize: '11px', color: '#71717a' }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
         </motion.div>
       </div>
 
-      {/* Follow-up requests */}
+      {/* Row 4 — Milestones (Interview Rate + Offers) */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
+        transition={{ delay: 0.3 }}
         className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
       >
         <div className="flex items-center gap-2 mb-4">
-          <AlertCircle size={16} className="text-amber-400" />
-          <h3 className="text-sm font-semibold text-zinc-200">Follow-up Requests</h3>
-          <span className="text-xs text-zinc-600 ml-auto">No response in 3+ weeks</span>
-          {followUp.length > 0 && (
-            <span className="px-2 py-0.5 bg-amber-500/15 border border-amber-500/30 text-amber-400 rounded-md text-xs font-semibold">
-              {followUp.length}
-            </span>
-          )}
+          <Award size={15} className="text-zinc-500" />
+          <h3 className="text-sm font-semibold text-zinc-400">Milestones</h3>
+          <span className="text-xs text-zinc-600 ml-auto">Unlocked as your search progresses</span>
         </div>
-        {followUp.length === 0 ? (
-          <p className="text-zinc-600 text-sm text-center py-4">
-            No follow-up needed — you're all caught up.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {followUp.map((app) => {
-              const daysAgo = Math.floor((Date.now() - new Date(app.appliedAt)) / (1000 * 60 * 60 * 24))
-              return (
-                <div key={app.applicationId} className="flex items-center justify-between bg-zinc-800/50 border border-zinc-700/50 rounded-xl px-4 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-zinc-200">{app.company}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5">{app.role}</p>
-                  </div>
-                  <span className="text-xs text-amber-500 font-medium">{daysAgo}d ago</span>
-                </div>
-              )
-            })}
+
+        <div className="grid grid-cols-2 gap-4">
+
+          {/* Interview Rate milestone */}
+          <div className={`flex items-center gap-4 rounded-xl border px-4 py-3.5 transition-colors ${
+            interviewUnlocked
+              ? 'bg-violet-500/8 border-violet-500/20'
+              : 'bg-zinc-800/30 border-zinc-800'
+          }`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              interviewUnlocked ? 'bg-violet-600' : 'bg-zinc-800'
+            }`}>
+              {interviewUnlocked
+                ? <TrendingUp size={16} className="text-white" />
+                : <Lock size={14} className="text-zinc-600" />
+              }
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className={`text-lg font-bold ${interviewUnlocked ? 'text-white' : 'text-zinc-600'}`}>
+                  {interviewUnlocked ? `${interviewRate}%` : '—'}
+                </p>
+                {interviewUnlocked && (
+                  <span className="text-xs px-1.5 py-0.5 bg-violet-500/15 text-violet-400 border border-violet-500/20 rounded-md font-medium">
+                    Unlocked
+                  </span>
+                )}
+              </div>
+              <p className={`text-xs mt-0.5 ${interviewUnlocked ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Interview Rate
+              </p>
+              {!interviewUnlocked && (
+                <p className="text-xs text-zinc-700 mt-0.5">Unlocks when you reach interview stage</p>
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Offers milestone */}
+          <div className={`flex items-center gap-4 rounded-xl border px-4 py-3.5 transition-colors ${
+            offerUnlocked
+              ? 'bg-emerald-500/8 border-emerald-500/20'
+              : 'bg-zinc-800/30 border-zinc-800'
+          }`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              offerUnlocked ? 'bg-emerald-600' : 'bg-zinc-800'
+            }`}>
+              {offerUnlocked
+                ? <Award size={16} className="text-white" />
+                : <Lock size={14} className="text-zinc-600" />
+              }
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className={`text-lg font-bold ${offerUnlocked ? 'text-white' : 'text-zinc-600'}`}>
+                  {offerUnlocked ? offers : '—'}
+                </p>
+                {offerUnlocked && (
+                  <span className="text-xs px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded-md font-medium">
+                    🎉 Unlocked
+                  </span>
+                )}
+              </div>
+              <p className={`text-xs mt-0.5 ${offerUnlocked ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                Offer{offers !== 1 ? 's' : ''} Received
+              </p>
+              {!offerUnlocked && (
+                <p className="text-xs text-zinc-700 mt-0.5">Unlocks when you receive your first offer</p>
+              )}
+            </div>
+          </div>
+
+        </div>
       </motion.div>
+
     </div>
   )
 }

@@ -34,7 +34,6 @@ export default function Login() {
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      localStorage.setItem('jt_token', data.token)
       setAuth(data.token, data.username, data.firstName)
       navigate('/home')
     },

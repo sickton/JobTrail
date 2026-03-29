@@ -47,6 +47,7 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
     register,
     handleSubmit,
     reset,
+    watch,
     setValue,
     formState: { errors },
   } = useForm({
@@ -165,19 +166,19 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Company *</label>
-                  <input {...register('company')} placeholder="Google" className={inputClass} />
+                  <input {...register('company')} placeholder="Example Company" className={inputClass} />
                   {errors.company && <p className={errorClass}>{errors.company.message}</p>}
                 </div>
                 <div>
                   <label className={labelClass}>Role *</label>
-                  <input {...register('role')} placeholder="Software Engineer" className={inputClass} />
+                  <input {...register('role')} placeholder="Engineer" className={inputClass} />
                   {errors.role && <p className={errorClass}>{errors.role.message}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Role Type *</label>
+                  <label className={labelClass}>Employment Type *</label>
                   <select {...register('roleType')} className={inputClass}>
                     {ROLE_TYPES.map((rt) => (
                         <option key={rt.value} value={rt.value} className="bg-zinc-800">
@@ -188,7 +189,7 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
                   {errors.roleType && <p className={errorClass}>{errors.roleType.message}</p>}
                 </div>
                 <div>
-                  <label className={labelClass}>Status *</label>
+                  <label className={labelClass}>Application Status *</label>
                   <select {...register('applicationStatus')} className={inputClass}>
                     {STATUSES.map((s) => (
                         <option key={s.value} value={s.value} className="bg-zinc-800">
@@ -201,7 +202,7 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
               </div>
 
               <div>
-                <label className={labelClass}>Job Posting Link</label>
+                <label className={labelClass}>Job Application Link</label>
                 <input {...register('link')} placeholder="https://careers.company.com/job/..." className={inputClass} />
                 {errors.link && <p className={errorClass}>{errors.link.message}</p>}
               </div>
@@ -210,16 +211,19 @@ export default function ApplicationForm({ open, onClose, onSubmit, defaultValues
                 <label className={labelClass}>Description / Notes</label>
                 <textarea
                     {...register('description')}
-                    placeholder="Any notes about this application..."
+                    placeholder="Important information about this application..."
                     rows={3}
                     className={`${inputClass} resize-none`}
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Resume (optional)</label>
-                <select {...register('resumeId')} className={inputClass}>
-                  <option value="" className="bg-zinc-800">— None —</option>
+                <label className={labelClass}>Resume used (optional)</label>
+                <select
+                    {...register('resumeId')}
+                    className={`${inputClass} ${watch('resumeId') === '' ? 'text-zinc-500' : 'text-white'}`}
+                >
+                  <option value="" className="bg-zinc-800">No Resume selected</option>
                   {resumes.map((r) => (
                       <option key={r.resumeId} value={String(r.resumeId)} className="bg-zinc-800">
                         {r.versionName}
