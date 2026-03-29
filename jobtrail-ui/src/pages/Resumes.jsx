@@ -45,7 +45,7 @@ export default function Resumes() {
         addMut.mutate(formData)
     }
 
-    const mostUsedId = resumes.length > 0 ? resumes[0].resumeId : null
+    const mostUsedId = resumes.length > 0 ? resumes[resumes.length - 1].resumeId : null
 
     const getResumeThumbnail = (fileUrl) => {
         if (!fileUrl) return null
