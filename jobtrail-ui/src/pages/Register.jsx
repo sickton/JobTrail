@@ -44,7 +44,6 @@ export default function Register() {
   const mutation = useMutation({
     mutationFn: registerUser,
     onSuccess: (data) => {
-      localStorage.setItem('jt_token', data.token)
       setAuth(data.token, data.username, data.firstName)
       navigate('/home')
     },
