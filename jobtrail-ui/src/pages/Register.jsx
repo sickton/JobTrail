@@ -69,14 +69,14 @@ export default function Register() {
           <span className="text-xl font-bold text-white">JobTrail</span>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-2xl">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-8 shadow-2xl">
           <div className="mb-6">
             <h2 className="text-xl font-bold text-white mb-1">Create your account</h2>
             <p className="text-zinc-500 text-sm">Start tracking your applications today</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-zinc-400 mb-1.5 block">First Name</label>
                 <input {...register('firstName')} placeholder="John" className={inputClass} />

@@ -195,7 +195,7 @@ export default function Analytics() {
         </div>
 
         {roleData.length > 0 ? (
-          <div className="grid grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 items-center">
             {/* Animated progress bars */}
             <div className="space-y-3.5">
               {roleData.map(({ name, value }, i) => (
@@ -248,7 +248,7 @@ export default function Analytics() {
       </motion.div>
 
       {/* Row 3 — Pipeline + Weekly Activity */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* Pipeline Funnel */}
         <motion.div
@@ -341,7 +341,7 @@ export default function Analytics() {
           <span className="text-xs text-zinc-600 ml-auto">Unlocked as your search progresses</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
           {/* Interview Rate milestone */}
           <div className={`flex items-center gap-4 rounded-xl border px-4 py-3.5 transition-colors ${

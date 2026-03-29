@@ -121,75 +121,124 @@ export default function ApplicationTable({ applications, onEdit, onDelete, onAdd
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-zinc-800">
-      <table className="w-full">
-        <thead className="bg-zinc-900/60 border-b border-zinc-800">
-          <tr>
-            <ColHeader field="company" label="Company" />
-            <ColHeader field="role" label="Role" />
-            <ColHeader field="roleType" label="Type" />
-            <ColHeader field="applicationStatus" label="Status" />
-            <ColHeader field="appliedAt" label="Applied" />
-            <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Link</th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-800/60">
+    <>
+      {/* Mobile card list — visible on small screens only */}
+      <div className="md:hidden space-y-2">
         {sorted.map((app, i) => (
-            <motion.tr
-                key={app.applicationId}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04 }}
-                className="hover:bg-zinc-800/30 transition-colors group"
-            >
-              <td className="px-4 py-3.5">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${avatarStyle(app.company)}`}>
-                    {app.company?.[0]?.toUpperCase() ?? '?'}
-                  </div>
-                  <span className="text-sm font-medium text-zinc-100">{app.company}</span>
+          <motion.div
+            key={app.applicationId}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+            className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3.5"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${avatarStyle(app.company)}`}>
+                  {app.company?.[0]?.toUpperCase() ?? '?'}
                 </div>
-              </td>
-              <td className="px-4 py-3.5">
-                <span className="text-sm text-zinc-300">{app.role}</span>
-              </td>
-              <td className="px-4 py-3.5">
-                <RoleBadge roleType={app.roleType} />
-              </td>
-              <td className="px-4 py-3.5">
-                <StatusBadge status={app.applicationStatus} />
-              </td>
-              <td className="px-4 py-3.5">
-                <span className="text-sm text-zinc-500">{formatDate(app.appliedAt)}</span>
-              </td>
-              <td className="px-4 py-3.5">
-                {app.link ? (
-                    <a href={app.link} target="_blank" rel="noopener noreferrer"
-                       className="text-indigo-400 hover:text-indigo-300 transition-colors inline-flex items-center gap-1 text-sm"
-                    >
-                      <ExternalLink size={13} /> View
-                    </a>
-                ) : (
-                    <span className="text-zinc-700 text-sm">—</span>
-                )}
-              </td>
-              <td className="px-4 py-3.5">
-                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => onEdit(app)}
-                          className="p-1.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors" title="Edit">
-                    <Pencil size={14} />
-                  </button>
-                  <button onClick={() => onDelete(app)}
-                          className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Delete">
-                    <Trash2 size={14} />
-                  </button>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-zinc-100 truncate">{app.company}</p>
+                  <p className="text-xs text-zinc-500 truncate mt-0.5">{app.role}</p>
                 </div>
-              </td>
-            </motion.tr>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button onClick={() => onEdit(app)}
+                        className="p-1.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors">
+                  <Pencil size={14} />
+                </button>
+                <button onClick={() => onDelete(app)}
+                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
+              <StatusBadge status={app.applicationStatus} />
+              <RoleBadge roleType={app.roleType} />
+              <span className="text-xs text-zinc-600 ml-auto">{formatDate(app.appliedAt)}</span>
+              {app.link && (
+                <a href={app.link} target="_blank" rel="noopener noreferrer"
+                   className="text-indigo-400 hover:text-indigo-300 inline-flex items-center gap-1 text-xs">
+                  <ExternalLink size={12} /> Link
+                </a>
+              )}
+            </div>
+          </motion.div>
         ))}
-        </tbody>
-      </table>
-    </div>
+      </div>
+
+      {/* Desktop table — hidden on small screens */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-zinc-800">
+        <table className="w-full">
+          <thead className="bg-zinc-900/60 border-b border-zinc-800">
+            <tr>
+              <ColHeader field="company" label="Company" />
+              <ColHeader field="role" label="Role" />
+              <ColHeader field="roleType" label="Type" />
+              <ColHeader field="applicationStatus" label="Status" />
+              <ColHeader field="appliedAt" label="Applied" />
+              <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Link</th>
+              <th className="px-4 py-3 text-right text-xs font-medium text-zinc-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-800/60">
+          {sorted.map((app, i) => (
+              <motion.tr
+                  key={app.applicationId}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="hover:bg-zinc-800/30 transition-colors group"
+              >
+                <td className="px-4 py-3.5">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold ${avatarStyle(app.company)}`}>
+                      {app.company?.[0]?.toUpperCase() ?? '?'}
+                    </div>
+                    <span className="text-sm font-medium text-zinc-100">{app.company}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3.5">
+                  <span className="text-sm text-zinc-300">{app.role}</span>
+                </td>
+                <td className="px-4 py-3.5">
+                  <RoleBadge roleType={app.roleType} />
+                </td>
+                <td className="px-4 py-3.5">
+                  <StatusBadge status={app.applicationStatus} />
+                </td>
+                <td className="px-4 py-3.5">
+                  <span className="text-sm text-zinc-500">{formatDate(app.appliedAt)}</span>
+                </td>
+                <td className="px-4 py-3.5">
+                  {app.link ? (
+                      <a href={app.link} target="_blank" rel="noopener noreferrer"
+                         className="text-indigo-400 hover:text-indigo-300 transition-colors inline-flex items-center gap-1 text-sm"
+                      >
+                        <ExternalLink size={13} /> View
+                      </a>
+                  ) : (
+                      <span className="text-zinc-700 text-sm">—</span>
+                  )}
+                </td>
+                <td className="px-4 py-3.5">
+                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => onEdit(app)}
+                            className="p-1.5 rounded-lg text-zinc-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors" title="Edit">
+                      <Pencil size={14} />
+                    </button>
+                    <button onClick={() => onDelete(app)}
+                            className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Delete">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </td>
+              </motion.tr>
+          ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   )
 }
