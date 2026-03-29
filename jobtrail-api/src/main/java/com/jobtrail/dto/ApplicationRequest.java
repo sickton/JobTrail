@@ -1,5 +1,6 @@
 package com.jobtrail.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ApplicationRequest {
+    @NotBlank(message = "Company is required")
     private String company;
+    @NotBlank(message = "Role is required")
     private String role;
     private String roleType;
     private String applicationStatus;

@@ -3,6 +3,7 @@ package com.jobtrail.controller;
 import com.jobtrail.dto.ApplicationRequest;
 import com.jobtrail.dto.ApplicationResponse;
 import com.jobtrail.service.ApplicationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,7 +34,7 @@ public class ApplicationController {
      * @return the application created
      */
     @PostMapping
-    public ResponseEntity<ApplicationResponse> createApplication(@RequestBody ApplicationRequest request, @AuthenticationPrincipal UserDetails userDetails)
+    public ResponseEntity<ApplicationResponse> createApplication(@Valid @RequestBody ApplicationRequest request, @AuthenticationPrincipal UserDetails userDetails)
     {
         return ResponseEntity.ok(
                 applicationService.createApplication(request, userDetails.getUsername()));
@@ -49,7 +50,7 @@ public class ApplicationController {
     @PutMapping("/{id}")
     public ResponseEntity<ApplicationResponse> updateApplication(
             @PathVariable Long id,
-            @RequestBody ApplicationRequest request,
+            @Valid @RequestBody ApplicationRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(
                 applicationService.updateApplication(id, request, userDetails.getUsername()));
