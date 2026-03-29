@@ -88,7 +88,7 @@ export default function Home() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}>
         <p className="text-xs text-zinc-600 font-medium uppercase tracking-widest mb-1">{formatFullDate()}</p>
-        <h1 className="text-3xl font-bold text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">
           {getGreeting()},{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">
             {displayName}
@@ -103,7 +103,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid grid-cols-3 gap-4"
+        className="grid grid-cols-3 sm:grid-cols-3 gap-3 sm:gap-4"
       >
         {STATS.map(({ label, value, icon: Icon, color }) => (
           <div
@@ -121,13 +121,13 @@ export default function Home() {
         ))}
       </motion.div>
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Quick actions */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="col-span-1 space-y-3"
+          className="md:col-span-1 space-y-3"
         >
           <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Navigate</h2>
           {QUICK_ACTIONS.map(({ label, description, icon: Icon, color, iconColor, to }) => (
@@ -151,7 +151,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="col-span-2"
+          className="md:col-span-2"
         >
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">

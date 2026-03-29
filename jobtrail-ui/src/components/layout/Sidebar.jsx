@@ -30,7 +30,7 @@ export default function Sidebar() {
   const initials = displayName.slice(0, 2).toUpperCase()
 
   return (
-    <aside className="fixed top-0 left-0 h-full w-60 bg-zinc-950 border-r border-zinc-800 flex flex-col z-40">
+    <aside className="fixed top-0 left-0 h-full w-60 bg-zinc-950 border-r border-zinc-800 hidden md:flex flex-col z-40">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-zinc-800">
         <div className="flex items-center gap-2.5">

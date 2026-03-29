@@ -95,15 +95,16 @@ export default function Applications() {
           </div>
           <button
               onClick={() => { setEditTarget(null); setFormOpen(true) }}
-              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-indigo-600/20"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-colors shadow-lg shadow-indigo-600/20"
           >
-            <Plus size={16} /> Add Application
+            <Plus size={16} />
+            <span className="hidden sm:inline">Add Application</span>
           </button>
         </motion.div>
 
         {/* Stats strip */}
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-                    className="grid grid-cols-3 gap-3"
+                    className="grid grid-cols-3 gap-2 sm:gap-3"
         >
           {[
             { label: 'Total',  value: applications.length, color: 'text-white' },

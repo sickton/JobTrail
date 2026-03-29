@@ -83,7 +83,7 @@ export default function Resumes() {
                         <p className="text-zinc-600 text-xs mt-1">Upload your first resume to get started</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                         {resumes.map((resume, i) => (
                             <motion.div
                                 key={resume.resumeId}
